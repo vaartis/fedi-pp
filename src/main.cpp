@@ -1,6 +1,6 @@
-#include <QApplication>
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -8,17 +8,20 @@
 
 #include <Plasma/Theme>
 
-#include "client.hpp"
+#include "Client.hpp"
+#include "TimelinePostModel.hpp"
 
 int main(int argc, char *argv[]) {
-     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-     QGuiApplication app(argc, argv);
+     QApplication app(argc, argv);
+
+     qmlRegisterType<TimelinePostModel>("ch.kotobank", 1, 0, "TimelinePostModel");
 
      QQmlApplicationEngine engine;
      auto context = engine.rootContext();
 
-     Client client(engine, QUrl("https://pl.kotobank.ch/"));
+     Client client(engine, QUrl("https://pl.kotobank.ch"));
      context->setContextProperty("Client", &client);
 
      engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

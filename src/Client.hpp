@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QQmlContext>
 #include <QQmlApplicationEngine>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -29,6 +30,7 @@ class Client : public QObject {
 signals:
     void appCreated();
     void loggedInChanged();
+    void loginFailed();
 public:
     void create_app() {
         if (!wallet->hasEntry(client_data_id)) {
@@ -79,13 +81,12 @@ public:
     }
 
     Q_PROPERTY(bool loggedIn READ logged_in NOTIFY loggedInChanged)
-    Q_INVOKABLE bool logged_in() {
+    bool logged_in() {
         return !token.isEmpty();
     }
 
     Q_PROPERTY(bool loginDataKnown READ login_data_known)
-    Q_INVOKABLE bool login_data_known() {
-        qDebug() << wallet->hasEntry(login_data_id);
+    bool login_data_known() {
         return wallet->hasEntry(login_data_id);
     }
 
@@ -114,8 +115,11 @@ public:
         // Variables refered directly in the capture list HAVE to captured by value, or they break
         connect(reply, &QNetworkReply::finished, this, [&, reply, username, password]() {
             if (reply->error() != QNetworkReply::NoError) {
-                engine.throwError(reply->errorString());
+                qDebug() << "Login error:" << reply->errorString();
+                
+                loginFailed();
 
+                reply->deleteLater();
                 return;
             }
 
@@ -128,6 +132,33 @@ public:
             token = json["access_token"].toString();
 
             loggedInChanged();
+
+            reply->deleteLater();
+        });
+    }
+
+    void get_request(const QString &added_url, std::function<void(QJsonDocument)> &&signal_callback, const QUrlQuery &query = QUrlQuery()) {
+        auto url = QUrl(instance_url.url() + added_url);
+        url.setQuery(query);
+        
+        auto request = QNetworkRequest(url);
+        request.setRawHeader(
+            "Authorization",
+            QString("Bearer %1").arg(token).toUtf8()
+        );        
+
+        auto reply = network_manager.get(request);
+        connect(reply, &QNetworkReply::finished, this, [&, reply, signal_callback] {
+            if (reply->error() != QNetworkReply::NoError) {
+                qDebug() << "Request error:" << reply->errorString();
+
+                reply->deleteLater();
+                return;
+            }
+
+            auto json = QJsonDocument::fromJson(reply->readAll());
+            
+            signal_callback(json);
 
             reply->deleteLater();
         });

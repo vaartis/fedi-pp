@@ -4,17 +4,19 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 project(fedi-pp CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS FALSE)
 
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTORCC TRUE)
 
 set(fedi-pp-src
-  src/main.qrc
+  src/qml/main.qrc
   src/main.cpp
 
-  src/client.hpp
+  src/Client.hpp
+
+  src/TimelinePostModel.hpp
 )
 
 add_executable(fedi-pp ${fedi-pp-src})

@@ -1,1 +1,6 @@
-.ccls-cache
+.ccls-cache/
+
+_build/
+_mobile_build/
+
+compile_commands.json
