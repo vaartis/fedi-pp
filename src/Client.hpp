@@ -45,7 +45,7 @@ public:
             };
 
             auto reply = network_manager.post(request, post_data.toString().toUtf8());
-            connect(reply, &QNetworkReply::finished, this, [&, reply]() {
+            connect(reply, &QNetworkReply::finished, this, [=, this]() {
                 if (reply->error() != QNetworkReply::NoError) {
                     engine.throwError(reply->errorString());
 
@@ -112,8 +112,8 @@ public:
         };
 
         auto reply = network_manager.post(request, post_data.toString().toUtf8());
-        // Variables refered directly in the capture list HAVE to captured by value, or they break
-        connect(reply, &QNetworkReply::finished, this, [&, reply, username, password]() {
+
+        connect(reply, &QNetworkReply::finished, this, [=, this]() {
             if (reply->error() != QNetworkReply::NoError) {
                 qDebug() << "Login error:" << reply->errorString();
                 
